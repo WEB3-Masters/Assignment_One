@@ -4,6 +4,21 @@ export interface Deck {
     cards: Card[];
     shuffle(shuffler: (cards: Card[]) => void): void;
     deal(): Card | undefined;
-    createInitialDeck(): Deck;
+}
+
+export const createInitialDeck = (): Deck => {
+    let state = {
+        cards: []
+    };
+
+    return {
+        cards: state.cards,
+        shuffle: (shuffler) => {
+            shuffler(state.cards);
+        },
+        deal: () => {
+            return state.cards.pop();
+        }
+    };
 }
 

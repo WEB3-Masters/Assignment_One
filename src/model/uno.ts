@@ -6,4 +6,11 @@ export interface Game {
     targetScore: number
     createGame: (props: Partial<Game>) => Game
     currentHand: () => Hand | undefined
+    winner: () => string | undefined
+    score: (index: number) => number
+    player: (index: number) => string
+}
+
+export const createGame = (props: Partial<Game>): Game => {
+
 }
