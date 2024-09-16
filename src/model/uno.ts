@@ -11,6 +11,8 @@ export interface Game {
     winner: () => string | undefined
     score: (index: number) => number
     player: (index: number) => string
+    randomizer?: Randomizer
+    shuffler?: Shuffler<Card>
 }
 
 export const createGame = (props: Partial<Game> & { shuffler?: Shuffler<Card>, randomizer?: Randomizer }): Game => {
@@ -32,6 +34,8 @@ export const createGame = (props: Partial<Game> & { shuffler?: Shuffler<Card>, r
       players,
       playerCount: players.length,
       targetScore,
+      randomizer,
+      shuffler,
   
       createGame(newProps: Partial<Game>) {
         return createGame({ ...props, ...newProps })
