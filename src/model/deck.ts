@@ -1,4 +1,4 @@
-import {Card} from "./card.ts";
+import { Card} from "./card"; // Ensure the paths are correct
 
 export interface Deck {
     cards: Card[];
@@ -21,4 +21,3 @@ export const createInitialDeck = (): Deck => {
         }
     };
 }
-

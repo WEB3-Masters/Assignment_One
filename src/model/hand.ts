@@ -1,12 +1,12 @@
-import { Card, Color } from "./card";
-import { Shuffler } from "../utils/random_utils";
-import { createInitialDeck } from "./deck";
+import { Card, Color, hasColor, isValidPlay } from "./card.ts"; // Assuming isValidPlay checks card validity based on UNO rules
+import { Deck, createInitialDeck } from "./deck.ts";
+import { Shuffler } from "../utils/random_utils.ts";
 
 export interface Hand {
     canPlay: (index: number) => boolean;
     canPlayAny: () => boolean;
     draw: () => void;
-    play: (index: number, color?: Color) => void;
+    play: (index: number, cardIndex: number) => void;
     winner: () => string | undefined;
     score: () => number | undefined;
     onEnd: (callback: (event: { winner: string }) => void) => void;
@@ -16,151 +16,141 @@ export interface Hand {
     drawPile: () => Card[];
     discardPile: () => Card[];
     sayUno: (index: number) => void;
-    catchUnoFailure: (params: { accuser: number, accused: number }) => boolean;
+    catchUnoFailure: (params: { accuser: number; accused: number }) => boolean;
     dealer: number;
 }
-type WaitingState = {
-    phase: string;
-    players: string[];
-    dealer: number;
-    card: Card;
-    playerHands: Card[][];
-    drawPile: Card[];
-    discardPile: Card[];
-    unoStatus: Set<number>;
-};
 
-type InPlayState = {
-    phase: string;
+type HandState = {
+    phase: "Game-Start" | "In-Play" | "Game-Over";
     players: string[];
     dealer: number;
-    card: Card;
-    playerHands: Card[][];
-    drawPile: Card[];
+    shuffler: Shuffler<Card>;
+    cards: Card[][];
+    currentCard: Card;
+    drawPile: Deck;
     discardPile: Card[];
     currentPlayer: number;
-    unoStatus: Set<number>;
+    unoCalled: boolean[];
 };
-
-type GameOverState = {
-    phase: string;
-    players: string[];
-    dealer: number;
-    card: Card;
-    playerHands: Card[][];
-    drawPile: Card[];
-    discardPile: Card[];
-    winner: number;
-};
-
-type HandState = WaitingState | InPlayState | GameOverState;
 
 export const createHand = (players: string[], dealer: number, shuffler: Shuffler<Card>, cardsPerPlayer: number): Hand => {
-    let currentState: HandState = {
-        phase,
+    const drawPile = createInitialDeck();
+    drawPile.shuffle(shuffler);
+    const discardPile: Card[] = [];
+    const playerHands: Card[][] = Array.from({ length: players.length }, () => []);
+
+    // Deal cards to players
+    for (let i = 0; i < cardsPerPlayer; i++) {
+        for (let j = 0; j < players.length; j++) {
+            const card = drawPile.deal();
+            if (card) {
+                playerHands[j].push(card);
+            }
+        }
+    }
+
+    let state: HandState = {
+        phase: "Game-Start",
         players,
         dealer,
-        card: {} as Card,
-        playerHands: [],
-        drawPile: [],
-        discardPile: [],
-        unoStatus: new Set()
+        shuffler,
+        cards: playerHands,
+        currentCard: drawPile.deal()!, // The first card to play from the draw pile
+        drawPile,
+        discardPile,
+        currentPlayer: (dealer + 1) % players.length,
+        unoCalled: Array(players.length).fill(false)
     };
 
-    const initializeDeck = () => {
-        const deck = createInitialDeck();
-        shuffler(deck.cards);
-        return deck.cards;
-    };
+    const endCallbacks: ((event: { winner: string }) => void)[] = [];
 
-    const dealCards = (deck: Card[]) => {
-        const hands = players.map(() => deck.splice(0, cardsPerPlayer));
-        currentState.playerHands = hands;
-    };
-
-    const startHand = () => {
-        const deck = initializeDeck();
-        dealCards(deck);
-        currentState.drawPile = deck;
-        currentState.discardPile = [currentState.drawPile.pop()!];
-        currentState.phase = "in-play";
-        currentState.currentPlayer = dealer;
-    };
-
-    const endHand = (winner: number) => {
-        currentState.phase = "game-over";
-        (currentState as GameOverState).winner = winner;
-        // Notify listeners
+    const checkWinner = () => {
+        for (let i = 0; i < players.length; i++) {
+            if (playerHands[i].length === 0) {
+                const winner = players[i];
+                endCallbacks.forEach(callback => callback({ winner }));
+                state.phase = "Game-Over";
+                return winner;
+            }
+        }
+        return undefined;
     };
 
     return {
         canPlay: (index: number) => {
-            if (currentState.phase !== "in-play") return false;
-            const playerHand = currentState.playerHands[index];
-            return playerHand.some(card => 
-                card.color === currentState.card.color || card.type === state.card.type
-            );
+            const playerHand = playerHands[index];
+            return playerHand.some((card, i) => {
+                if (card.type === 'WILD' || card.type === 'WILD DRAW FOUR') {
+                    // Wild cards and Wild Draw Four can always be played
+                    return true;
+                }
+                // Add other game logic for determining if a card can be played
+                return hasColor(card) && card.color === (hasColor(state.currentCard) &&state.currentCard.color) || 
+                (card.type === 'NUMBERED' && state.currentCard.type === 'NUMBERED' && card.number === state.currentCard.number) ||
+                card.type === state.currentCard.type;
+            });
         },
         canPlayAny: () => {
-            if (currentState.phase !== "in-play") return false;
-            return currentState.playerHands[currentState.currentPlayer].some(card => 
-                card.color === currentState.card.color || card.type === currentState.card.type
-            );
+            return players.some((_, index) => this.canPlay(index));
         },
         draw: () => {
-            if (currentState.phase !== "in-play") return;
-            const card = currentState.drawPile.pop();
+            const card = drawPile.deal();
             if (card) {
-                currentState.playerHands[currentState.currentPlayer].push(card);
+                playerHands[state.currentPlayer].push(card);
             }
-            if (currentState.drawPile.length === 0) {
-            }
+            checkWinner();
+            // Pass the turn to the next player
+            state.currentPlayer = (state.currentPlayer + 1) % players.length;
         },
-        play: (index: number, color?: Color) => {
-            if (currentState.phase !== "in-play" || currentState.currentPlayer !== index) return;
-            const card = currentState.playerHands[index].find(c => 
-                color ? c.color === color : c.color === currentState.card.color || c.type === currentState.card.type
-            );
-            if (card) {
-                currentState.playerHands[index] = currentState.playerHands[index].filter(c => c !== card);
-                currentState.discardPile.push(card);
-                currentState.card = card;
-                if (currentState.playerHands[index].length === 0) {
-                    endHand(index);
+        play: (index: number, cardIndex: number) => {
+            const playerHand = playerHands[index];
+            const cardToPlay = playerHand[cardIndex];
+
+            if (isValidPlay(cardToPlay, state.currentCard)) {
+                discardPile.push(cardToPlay);
+                playerHands[index].splice(cardIndex, 1); // Remove the played card
+                state.currentCard = cardToPlay; // Update the current card
+
+                // Check for UNO
+                if (playerHands[index].length === 1) {
+                    state.unoCalled[index] = true; // Mark UNO called
+                }
+
+                // Check for the winner
+                const winner = checkWinner();
+                if (!winner) {
+                    // Pass the turn to the next player
+                    state.currentPlayer = (state.currentPlayer + 1) % players.length;
                 }
             }
         },
-        winner: () => {
-            if (currentState.phase === "game-over") {
-                return (currentState as GameOverState).players[(currentState as GameOverState).winner];
-            }
-            return undefined;
-        },
+        winner: () => checkWinner(),
         score: () => {
-            if (currentState.phase === "game-over") {
-                return currentState.playerHands.flat().reduce((acc, card) => acc + card.number, 0);
-            }
-            return undefined;
+            // Implement score calculation logic
+            return undefined; // Placeholder
         },
-        onEnd: (callback: (event: { winner: string }) => void) => {
+        onEnd: (callback) => {
+            endCallbacks.push(callback);
         },
-        hasEnded: () => currentState.phase === "game-over",
-        playerInTurn: () => currentState.phase === "in-play" ? currentState.currentPlayer : undefined,
-        playerHand: (index: number) => currentState.playerHands[index],
-        drawPile: () => currentState.drawPile,
-        discardPile: () => currentState.discardPile,
+        hasEnded: () => state.phase === "Game-Over",
+        playerInTurn: () => state.currentPlayer,
+        playerHand: (index: number) => playerHands[index],
+        drawPile: () => drawPile.cards,
+        discardPile: () => discardPile,
         sayUno: (index: number) => {
-            if (currentState.phase === "in-play") {
-                currentState.unoStatus.add(index);
+            if (playerHands[index].length === 1) {
+                state.unoCalled[index] = true;
             }
         },
         catchUnoFailure: ({ accuser, accused }) => {
-            if (currentState.unoStatus.has(accused)) {
-                return false; 
+            if (state.unoCalled[accused] === false) {
+                // Accused player didn't say UNO
+                playerHands[accuser].push(...playerHands[accused].splice(0, 2)); // Penalty: Draw two cards
+                state.unoCalled[accused] = false; // Reset the UNO call
+                return true; // Accusation successful
             }
-            currentState.playerHands[accused].push(...currentState.drawPile.splice(0, 2));
-            return true; 
+            return false; // Accusation failed
         },
-        dealer: dealer
+        dealer
     };
 };
