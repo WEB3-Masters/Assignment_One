@@ -79,9 +79,11 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
     const hand= {
         canPlay: (index: number) => {
             const playerHand = playerHands[state.currentPlayer];
-            let hasWildDrawFour=false;
             const card=playerHand[index];
-
+            
+            if(index<0 || index>playerHand.length-1){
+                return false;
+            }
 
             // Play with WILD Card
             if (card.type === 'WILD'  ) return true
@@ -154,9 +156,9 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             return false
         },
         canPlayAny: () => {
-            // return players.some((_, index) => this.canPlay(index));
-            return true
-        },
+            const playerHand = playerHands[state.currentPlayer];
+            return playerHand.some((_, index) => hand.canPlay(index));
+          },          
         draw: () => {
             const card = drawPile.deal();
             if (card) {
@@ -166,38 +168,20 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             // Pass the turn to the next player
             state.currentPlayer = (state.currentPlayer + 1) % players.length;
         },
-        play: (cardNo: number, chosenColor?: string) => {
-            // const playerHand = playerHands[state.currentPlayer];
-            // const card = playerHand[cardNo];
-        
-            // // Check if the player can play this specific card
-            // if (!hand.canPlay(state.currentPlayer)) {
-            //     console.log("Player cannot play any card at this moment.");
-            //     return;
-            // }
-        
-            // // If the card is a wild card, set the chosen color
-            // if (card.type === 'WILD' || card.type === 'WILD DRAW FOUR') {
-            //     if (!chosenColor) {
-            //         console.log("You must choose a color when playing a wild card.");
-            //         return;
-            //     }
-            //     card.color = chosenColor;  // Set the color for the wild card
-            // }
-        
-            // // Ensure the card can be played according to game rules
-            // if (!canPlayCard(card)) {
-            //     console.log("This card cannot be played.");
-            //     return;
-            // }
-        
-            // // Play the card
-            // state.currentCard = card;      // Update the current card in the game state
-            // playerHand.splice(cardNo, 1);  // Remove the card from the player's hand
-            // console.log(`Player ${state.currentPlayer} played:`, card);
-        
-            // // Handle additional logic like changing the turn, drawing cards, etc.
-            // endTurn();  // Example placeholder for end-turn logic
+        play: (index: number, chosenColor?: string) => {
+            const playerHand = playerHands[state.currentPlayer];
+            if (index < 0 || index >= playerHand.length) {
+              throw new Error("Invalid card index");
+            }
+            
+            const card = playerHand[index];
+            discardPile.push(card);
+            playerHand.splice(index, 1);
+            state.currentPlayer+=1;
+            if(card.type==='SKIP'){
+            state.currentPlayer+=2;
+            }
+
         },
         winner: () => checkWinner(),
         score: () => {
@@ -205,7 +189,6 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             return undefined; // Placeholder
         },
         onEnd: (callback) => {
-            endCallbacks.push(callback);
         },
         hasEnded: () => state.phase === "Game-Over",
         playerInTurn: () => state.currentPlayer,
@@ -218,12 +201,7 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             }
         },
         catchUnoFailure: ({ accuser, accused }) => {
-            if (state.unoCalled[accused] === false) {
-                // Accused player didn't say UNO
-                playerHands[accuser].push(...playerHands[accused].splice(0, 2)); // Penalty: Draw two cards
-                state.unoCalled[accused] = false; // Reset the UNO call
-                return true; // Accusation successful
-            }
+            
             return false; // Accusation failed
         },
         dealer
