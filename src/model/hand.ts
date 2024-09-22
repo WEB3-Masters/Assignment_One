@@ -1,12 +1,12 @@
-import { Card, Color, hasColor, isValidPlay } from "./card.ts"; // Assuming isValidPlay checks card validity based on UNO rules
-import { Deck, createInitialDeck } from "./deck.ts";
-import { Shuffler } from "../utils/random_utils.ts";
+import { Card, Color, hasColor, isValidPlay, NumberedCard } from "./card"; // Assuming isValidPlay checks card validity based on UNO rules
+import { Deck, createInitialDeck } from "./deck";
+import { Shuffler } from "../utils/random_utils";
 
 export interface Hand {
     canPlay: (index: number) => boolean;
     canPlayAny: () => boolean;
     draw: () => void;
-    play: (index: number, cardIndex: number) => void;
+    play: (cardNo: number, chosenColor?: string) => void;
     winner: () => string | undefined;
     score: () => number | undefined;
     onEnd: (callback: (event: { winner: string }) => void) => void;
@@ -76,22 +76,86 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
         return undefined;
     };
 
-    return {
+    const hand= {
         canPlay: (index: number) => {
-            const playerHand = playerHands[index];
-            return playerHand.some((card, i) => {
-                if (card.type === 'WILD' || card.type === 'WILD DRAW FOUR') {
-                    // Wild cards and Wild Draw Four can always be played
+            const playerHand = playerHands[state.currentPlayer];
+            let hasWildDrawFour=false;
+            const card=playerHand[index];
+
+
+            // Play with WILD Card
+            if (card.type === 'WILD'  ) return true
+           
+            // Play on NUMBERED Card
+            if(state.currentCard.type==='NUMBERED'){
+              if( hasColor(card) && card.color === (hasColor(state.currentCard) &&state.currentCard.color)) return true
+
+              if(card.type === 'NUMBERED' && state.currentCard.type==='NUMBERED' && (card.number===state.currentCard.number)) return true
+            }
+
+            // Play on REVERSE Card
+            if (state.currentCard.type === 'REVERSE'  ) {
+                if( hasColor(card) && card.color === (hasColor(state.currentCard) &&state.currentCard.color)) return true
+                if(card.type==='REVERSE') return true;
+            }
+
+            // Play on SKIP Card
+            if(state.currentCard.type==='SKIP'){
+                if( hasColor(card) && card.color === (hasColor(state.currentCard) &&state.currentCard.color)) return true
+                if(card.type==='SKIP') return true
+            }
+
+            // Play on DRAW Card
+            if(state.currentCard.type==='DRAW'){
+                if( hasColor(card) && card.color === (hasColor(state.currentCard) &&state.currentCard.color)) return true
+                if(card.type==='DRAW') return true
+            }
+
+            // Play on WILD Card
+            if(state.currentCard.type==='WILD'){
+                let discardPile = hand.discardPile();
+                let lastCard=discardPile[discardPile.length-1]
+            if(hasColor(card) && card.color === (hasColor(lastCard) && lastCard.color)) return true
+            if(card.type==='WILD DRAW'){
+                for (let index = 0; index < playerHand.length; index++) {
+                    const cardInArray = playerHand[index];
+                    if(hasColor(cardInArray) && cardInArray.color===(hasColor(lastCard) && lastCard.color)){
+                        return false;
+                    }
+                    
+                }
+                return true;
+            }
+        }
+            
+        // Play with WILD DRAW Card
+        if (card.type === 'WILD DRAW') {
+            for (let index = 0; index < playerHand.length; index++) {
+                if(
+                playerHand[index].type==='DRAW' || 
+                playerHand[index].type==='SKIP' || 
+                playerHand[index].type==='REVERSE' || 
+                playerHand[index].type==='WILD' &&
+                hand.canPlay(index)
+                ) {
+                    return false;
+                }
+
+                const card = playerHand[index];
+                if( hasColor(card) && card.color === (hasColor(state.currentCard) &&state.currentCard.color)) return false
+            
+                if (card.type === 'NUMBERED' && state.currentCard.type==='NUMBERED' && (card.number===state.currentCard.number)) {
                     return true;
                 }
-                // Add other game logic for determining if a card can be played
-                return hasColor(card) && card.color === (hasColor(state.currentCard) &&state.currentCard.color) || 
-                (card.type === 'NUMBERED' && state.currentCard.type === 'NUMBERED' && card.number === state.currentCard.number) ||
-                card.type === state.currentCard.type;
-            });
+                
+                }
+            }
+          
+            return false
         },
         canPlayAny: () => {
-            return players.some((_, index) => this.canPlay(index));
+            // return players.some((_, index) => this.canPlay(index));
+            return true
         },
         draw: () => {
             const card = drawPile.deal();
@@ -102,27 +166,38 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             // Pass the turn to the next player
             state.currentPlayer = (state.currentPlayer + 1) % players.length;
         },
-        play: (index: number, cardIndex: number) => {
-            const playerHand = playerHands[index];
-            const cardToPlay = playerHand[cardIndex];
-
-            if (isValidPlay(cardToPlay, state.currentCard)) {
-                discardPile.push(cardToPlay);
-                playerHands[index].splice(cardIndex, 1); // Remove the played card
-                state.currentCard = cardToPlay; // Update the current card
-
-                // Check for UNO
-                if (playerHands[index].length === 1) {
-                    state.unoCalled[index] = true; // Mark UNO called
-                }
-
-                // Check for the winner
-                const winner = checkWinner();
-                if (!winner) {
-                    // Pass the turn to the next player
-                    state.currentPlayer = (state.currentPlayer + 1) % players.length;
-                }
-            }
+        play: (cardNo: number, chosenColor?: string) => {
+            // const playerHand = playerHands[state.currentPlayer];
+            // const card = playerHand[cardNo];
+        
+            // // Check if the player can play this specific card
+            // if (!hand.canPlay(state.currentPlayer)) {
+            //     console.log("Player cannot play any card at this moment.");
+            //     return;
+            // }
+        
+            // // If the card is a wild card, set the chosen color
+            // if (card.type === 'WILD' || card.type === 'WILD DRAW FOUR') {
+            //     if (!chosenColor) {
+            //         console.log("You must choose a color when playing a wild card.");
+            //         return;
+            //     }
+            //     card.color = chosenColor;  // Set the color for the wild card
+            // }
+        
+            // // Ensure the card can be played according to game rules
+            // if (!canPlayCard(card)) {
+            //     console.log("This card cannot be played.");
+            //     return;
+            // }
+        
+            // // Play the card
+            // state.currentCard = card;      // Update the current card in the game state
+            // playerHand.splice(cardNo, 1);  // Remove the card from the player's hand
+            // console.log(`Player ${state.currentPlayer} played:`, card);
+        
+            // // Handle additional logic like changing the turn, drawing cards, etc.
+            // endTurn();  // Example placeholder for end-turn logic
         },
         winner: () => checkWinner(),
         score: () => {
@@ -153,4 +228,6 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
         },
         dealer
     };
+return hand;
+
 };

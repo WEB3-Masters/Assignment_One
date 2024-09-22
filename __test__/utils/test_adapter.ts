@@ -1,6 +1,6 @@
 import { Card } from "../../src/model/card"
 import { Deck } from "../../src/model/deck"
-import { Hand } from "../../src/model/hand"
+import * as hand from '../../src/model/hand'
 import { Shuffler, standardShuffler } from "../../src/utils/random_utils"
 import * as uno from '../../src/model/uno'
 
@@ -20,8 +20,8 @@ export function createHand({
     dealer, 
     shuffler = standardShuffler,
     cardsPerPlayer = 7
-  }: HandProps): Hand {
-  return createHand({players, dealer, shuffler, cardsPerPlayer})
+  }: HandProps): hand.Hand {
+  return hand.createHand(players, dealer, shuffler, cardsPerPlayer)
 }
 
 export function createGame(props: Partial<uno.Game>): uno.Game {
