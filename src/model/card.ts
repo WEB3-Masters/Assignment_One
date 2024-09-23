@@ -1,8 +1,6 @@
 export const colors  = ["RED", "BLUE", "YELLOW", "GREEN"] as const;
-export const cardTypes  = ["NUMBERED", "SKIP", "REVERSE", "DRAW", "WILD", "WILD DRAW", "BLANK"] as const;
 export type Color = typeof colors[number];
-export type Type = typeof cardTypes[number];
-
+export type Type = Card["type"];
 
 export interface NumberedCard extends CardBase{
     type: 'NUMBERED';
@@ -59,5 +57,6 @@ export type Card =
     | DrawTwoCard
     | WildCard
     | WildDrawCard
-    | BlankCard ;
+    | BlankCard;
+
 
