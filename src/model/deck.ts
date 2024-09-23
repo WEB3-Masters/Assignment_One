@@ -1,4 +1,4 @@
-import { Card} from "./card"; // Ensure the paths are correct
+import { Card} from "./card";
 
 export interface Deck {
     cards: Card[];
