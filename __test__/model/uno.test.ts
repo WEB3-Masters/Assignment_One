@@ -1,4 +1,4 @@
-import { describe, it, test, expect } from '@jest/globals'
+import { describe, it, test, expect, beforeEach } from '@jest/globals'
 import { createGame } from '../utils/test_adapter'
 import { shuffleBuilder, successiveShufflers } from '../utils/shuffling'
 import { Game } from '../../src/model/uno'

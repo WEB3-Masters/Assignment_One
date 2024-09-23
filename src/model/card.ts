@@ -1,7 +1,8 @@
 export const colors  = ["RED", "BLUE", "YELLOW", "GREEN"] as const;
 export type Color = typeof colors[number];
+export type Type = Card["type"];
 
-interface NumberedCard extends CardBase{
+export interface NumberedCard extends CardBase{
     type: 'NUMBERED';
     color: Color;
     number: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
@@ -17,6 +18,11 @@ interface ReverseCard extends CardBase{
     color: Color;
 }
 
+interface DrawCard extends CardBase{
+    type: 'DRAW';
+    color: Color;
+}
+
 interface DrawTwoCard extends CardBase{
     type: 'DRAW TWO';
     color: Color;
@@ -27,7 +33,7 @@ interface WildCard extends CardBase{
 }
 
 interface WildDrawCard extends CardBase{
-    type: 'WILD DRAW FOUR';
+    type: 'WILD DRAW';
 }
 
 interface BlankCard extends CardBase{
@@ -39,11 +45,18 @@ interface CardBase {
     size: number;
 }
 
+export function hasColor(card: Card): card is Extract<Card, { color: Color }> {
+    return 'color' in card;
+}
+
 export type Card =
     | NumberedCard
     | SkipCard
     | ReverseCard
+    | DrawCard
     | DrawTwoCard
     | WildCard
     | WildDrawCard
-    | BlankCard ;
+    | BlankCard;
+
+
