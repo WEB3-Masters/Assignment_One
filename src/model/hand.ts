@@ -170,18 +170,51 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
         },
         play: (index: number, chosenColor?: string) => {
             const playerHand = playerHands[state.currentPlayer];
-            if (index < 0 || index >= playerHand.length) {
-              throw new Error("Invalid card index");
-            }
-            
+            let direction=1;
             const card = playerHand[index];
+            if (index < 0 || index >= playerHand.length) {
+                throw new Error("Invalid card index");
+              }
+
+            if(hand.canPlay(index)) {
+                if(hasColor(card) && chosenColor){
+                    throw new Error("Illegal to name a color on a colored card");
+                }
+                if((card.type==='WILD' || card.type==='WILD DRAW') && chosenColor){
+                    throw new Error("Illegal _not_ to name a color on a wild card");
+                }
+    
+                if(card.type==='SKIP'){
+                    state.currentPlayer+=direction*2
+                }
+                if(card.type==='REVERSE'){
+                    direction*=-1;
+                    state.currentPlayer+=direction*1
+                    }
+                if(card.type==='DRAW'){
+                    state.currentPlayer+=direction*2
+                    for (let index = 0; index < 2; index++) {
+                        hand.draw();
+                    }
+                }
+                if(card.type==='WILD DRAW'){
+                    state.currentPlayer+=direction*2
+                    for (let index = 0; index < 4; index++) {
+                        hand.draw();
+                    }
+            }
+            if(card.type==='WILD'){
+                state.currentPlayer+=direction*2
+            }
+            else{
+                state.currentPlayer+=direction*1
+            }
             discardPile.push(card);
             playerHand.splice(index, 1);
-            state.currentPlayer+=1;
-            if(card.type==='SKIP'){
-            state.currentPlayer+=2;
             }
-
+            else{
+                hand.draw();
+            }
         },
         winner: () => checkWinner(),
         score: () => {
