@@ -1,4 +1,4 @@
-import { Card, Color, hasColor, isValidPlay, NumberedCard } from "./card"; // Assuming isValidPlay checks card validity based on UNO rules
+import { Card, Color, hasColor, NumberedCard } from "./card"; // Assuming isValidPlay checks card validity based on UNO rules
 import { Deck, createInitialDeck } from "./deck";
 import { Shuffler } from "../utils/random_utils";
 

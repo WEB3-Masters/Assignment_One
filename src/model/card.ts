@@ -1,5 +1,5 @@
 export const colors  = ["RED", "BLUE", "YELLOW", "GREEN"] as const;
-export const cardTypes  = ["NUMBERED", "SKIP", "REVERSE", "DRAW", "WILD", "WILD DRAW FOUR", "BLANK"] as const;
+export const cardTypes  = ["NUMBERED", "SKIP", "REVERSE", "DRAW", "WILD", "WILD DRAW", "BLANK"] as const;
 export type Color = typeof colors[number];
 export type Type = typeof cardTypes[number];
 
