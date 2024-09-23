@@ -6,7 +6,7 @@ export interface Hand {
     canPlay: (index: number) => boolean;
     canPlayAny: () => boolean;
     draw: () => void;
-    play: (cardNo: number, chosenColor?: string) => void;
+    play: (cardNo: number, chosenColor?: string) => Card;
     winner: () => string | undefined;
     score: () => number | undefined;
     onEnd: (callback: (event: { winner: string }) => void) => void;
@@ -14,7 +14,7 @@ export interface Hand {
     playerInTurn: () => number | undefined;
     playerHand: (index: number) => Card[];
     drawPile: () => Card[];
-    discardPile: () => Card[];
+    discardPile: () => Deck;
     sayUno: (index: number) => void;
     catchUnoFailure: (params: { accuser: number; accused: number }) => boolean;
     dealer: number;
