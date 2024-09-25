@@ -1,22 +1,25 @@
 import { Card, Color, hasColor, NumberedCard } from "./card"; // Assuming isValidPlay checks card validity based on UNO rules
 import { Deck, createInitialDeck } from "./deck";
 import { Shuffler } from "../utils/random_utils";
+import { isStaticProperty } from "vue/compiler-sfc";
 
 export interface Hand {
     canPlay: (index: number) => boolean;
     canPlayAny: () => boolean;
     draw: () => void;
-    play: (cardNo: number, chosenColor?: string) => Card;
+    play: (index: number, chosenColor?: string) => Card;
     winner: () => string | undefined;
     score: () => number | undefined;
     onEnd: (callback: (event: { winner: string }) => void) => void;
     hasEnded: () => boolean;
     playerInTurn: () => number | undefined;
     playerHand: (index: number) => Card[];
-    drawPile: () => Card[];
+    drawPile: () => Deck;
     discardPile: () => Deck;
     sayUno: (index: number) => void;
     catchUnoFailure: (params: { accuser: number; accused: number }) => boolean;
+    playerCount: number;
+    player:(index: number) => string
     dealer: number;
 }
 
@@ -28,7 +31,7 @@ type HandState = {
     cards: Card[][];
     currentCard: Card;
     drawPile: Deck;
-    discardPile: Card[];
+    discardPile: Deck;
     currentPlayer: number;
     unoCalled: boolean[];
 };
@@ -36,8 +39,9 @@ type HandState = {
 export const createHand = (players: string[], dealer: number, shuffler: Shuffler<Card>, cardsPerPlayer: number): Hand => {
     const drawPile = createInitialDeck();
     drawPile.shuffle(shuffler);
-    const discardPile: Card[] = [];
+    const discardPile: Deck = createInitialDeck();
     const playerHands: Card[][] = Array.from({ length: players.length }, () => []);
+
 
     // Deal cards to players
     for (let i = 0; i < cardsPerPlayer; i++) {
@@ -76,7 +80,7 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
         return undefined;
     };
 
-    const hand= {
+    const hand: Hand= {
         canPlay: (index: number) => {
             const playerHand = playerHands[state.currentPlayer];
             const card=playerHand[index];
@@ -116,12 +120,12 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             // Play on WILD Card
             if(state.currentCard.type==='WILD'){
                 let discardPile = hand.discardPile();
-                let lastCard=discardPile[discardPile.length-1]
-            if(hasColor(card) && card.color === (hasColor(lastCard) && lastCard.color)) return true
+                let lastCard=discardPile.top();
+            if(hasColor(card) && card.color === (lastCard && hasColor(lastCard) && lastCard.color)) return true
             if(card.type==='WILD DRAW'){
                 for (let index = 0; index < playerHand.length; index++) {
                     const cardInArray = playerHand[index];
-                    if(hasColor(cardInArray) && cardInArray.color===(hasColor(lastCard) && lastCard.color)){
+                    if(hasColor(cardInArray) && cardInArray.color===(lastCard && hasColor(lastCard) && lastCard.color)){
                         return false;
                     }
                     
@@ -209,12 +213,13 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             else{
                 state.currentPlayer+=direction*1
             }
-            discardPile.push(card);
+            discardPile.addCard(card);
             playerHand.splice(index, 1);
             }
             else{
                 hand.draw();
             }
+            return card;
         },
         winner: () => checkWinner(),
         score: () => {
@@ -226,7 +231,7 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
         hasEnded: () => state.phase === "Game-Over",
         playerInTurn: () => state.currentPlayer,
         playerHand: (index: number) => playerHands[index],
-        drawPile: () => drawPile.cards,
+        drawPile: () => drawPile,
         discardPile: () => discardPile,
         sayUno: (index: number) => {
             if (playerHands[index].length === 1) {
@@ -237,6 +242,8 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             
             return false; // Accusation failed
         },
+        playerCount: state.players.length,
+        player:(index: number) => state.players[index],
         dealer
     };
 return hand;
