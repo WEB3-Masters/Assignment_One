@@ -36,3 +36,4 @@ export const createInitialDeck = (): Deck => {
     };
     return deck;
 }
+
