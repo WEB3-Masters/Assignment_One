@@ -1,5 +1,7 @@
 export const colors  = ["RED", "BLUE", "YELLOW", "GREEN"] as const;
 export type Color = typeof colors[number];
+export const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
+export type Number = typeof numbers[number];
 
 interface NumberedCard extends CardBase{
     type: 'NUMBERED';
@@ -36,7 +38,7 @@ interface BlankCard extends CardBase{
 
 interface CardBase {
     top: () => Card;
-    size: number;
+    size: () => number;
 }
 
 export type Card =
