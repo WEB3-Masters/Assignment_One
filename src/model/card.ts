@@ -25,11 +25,6 @@ interface DrawCard extends CardBase{
     color: Color;
 }
 
-interface DrawTwoCard extends CardBase{
-    type: 'DRAW TWO';
-    color: Color;
-}
-
 interface WildCard extends CardBase{
     type: 'WILD';
 }
@@ -56,7 +51,6 @@ export type Card =
     | SkipCard
     | ReverseCard
     | DrawCard
-    | DrawTwoCard
     | WildCard
     | WildDrawCard
     | BlankCard;

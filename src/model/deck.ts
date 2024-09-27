@@ -1,11 +1,12 @@
-import {cardNumbers, colors, Card} from "./card.ts";
+import {cardNumbers, colors, Card} from "./card";
 
 export interface Deck {
     cards: Card[];
     shuffle(shuffler: (cards: Card[]) => void): void;
     deal(): Card | undefined;
     top(): Card | undefined;
-    size(): number;
+    addCard(card: Card): void;
+    size: number;
 }
 
 //Function to return the deck object with props
@@ -25,9 +26,9 @@ export const createInitialDeck = (): Deck => {
         top: () => {
             return state.cards[state.cards.length - 1]
         },
-        size: () => {
-            return state.cards.length;
-        }
+        addCard: (card) => {
+        },
+        size: state.cards.length
     };
 }
 
@@ -52,7 +53,7 @@ const initialiseCards = (): Card[] => {
             }
         }
         //Create 2 each of the other colored cards
-        for (let type of ["SKIP", "REVERSE", "DRAW TWO"] as const) {
+        for (let type of ["SKIP", "REVERSE", "DRAW"] as const) {
             cards.push({ type, color, top, size })
             cards.push({ type, color, top, size })
         }
@@ -60,7 +61,7 @@ const initialiseCards = (): Card[] => {
     //Create 4x WILD and 4x WILD DRAW FOUR
     for (let i = 0; i <= 3; i++) {
         cards.push({ type: "WILD", top, size });
-        cards.push({ type: "WILD DRAW FOUR", top, size });
+        cards.push({ type: "WILD DRAW", top, size });
     }
     return cards;
 }
