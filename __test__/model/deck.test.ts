@@ -3,7 +3,6 @@ import { createInitialDeck } from '../utils/test_adapter'
 import { standardShuffler } from '../../src/utils/random_utils'
 import { is } from '../utils/predicates'
 import * as deck from '../../src/model/deck'
-import * as card from '../../src/model/card'
 import { memoizingShuffler } from '../utils/shuffling'
 
 describe("Initial deck", () => {

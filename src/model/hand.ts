@@ -1,7 +1,6 @@
-import { Card, Color, hasColor, NumberedCard } from "./card"; // Assuming isValidPlay checks card validity based on UNO rules
+import { Card, hasColor } from "./card"; // Assuming isValidPlay checks card validity based on UNO rules
 import { Deck, createInitialDeck } from "./deck";
 import { Shuffler } from "../utils/random_utils";
-import { isStaticProperty } from "vue/compiler-sfc";
 
 export interface Hand {
     canPlay: (index: number) => boolean;

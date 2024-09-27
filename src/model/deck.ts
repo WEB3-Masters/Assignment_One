@@ -1,25 +1,22 @@
-import { Card} from "./card";
+import {cardNumbers, colors, Card} from "./card";
 
 export interface Deck {
     cards: Card[];
-    playedCards: Card[];
     shuffle(shuffler: (cards: Card[]) => void): void;
     deal(): Card | undefined;
     top(): Card | undefined;
-    // size(): number;
     addCard(card: Card): void;
-    size:number;
+    size: number;
 }
 
+//Function to return the deck object with props
 export const createInitialDeck = (): Deck => {
     let state = {
-        cards: [],
-        playedCards: []
+        cards: initialiseCards()
     };
 
-    const deck:Deck= {
+    return {
         cards: state.cards,
-        playedCards: state.playedCards,
         shuffle: (shuffler) => {
             shuffler(state.cards);
         },
@@ -27,13 +24,48 @@ export const createInitialDeck = (): Deck => {
             return state.cards.pop();
         },
         top: () => {
-            return state.cards[state.cards.length - 1]; //TODO: check if this is correct
+            return state.cards[state.cards.length - 1]
         },
         addCard: (card) => {
         },
         size: state.cards.length
-
     };
-    return deck;
 }
+
+//Create each of the cards
+const initialiseCards = (): Card[] => {
+
+    let cards: Card[] = []
+
+    const top = (): Card => cards[cards.length - 1];
+    const size = (): number => cards.length;
+
+    //Create the 4 colors
+    for (let color of colors) {
+        //Create numbered cards (1x 0, 2x 1 � 9)
+        for (let number of cardNumbers) {
+            if (number === 0) {
+                cards.push({ type: "NUMBERED", color, number, top, size });
+            }
+            else {
+                cards.push({ type: 'NUMBERED', color, number, top, size });
+                cards.push({ type: 'NUMBERED', color, number, top, size });
+            }
+        }
+        //Create 2 each of the other colored cards
+        for (let type of ["SKIP", "REVERSE", "DRAW"] as const) {
+            cards.push({ type, color, top, size })
+            cards.push({ type, color, top, size })
+        }
+    }
+    //Create 4x WILD and 4x WILD DRAW FOUR
+    for (let i = 0; i <= 3; i++) {
+        cards.push({ type: "WILD", top, size });
+        cards.push({ type: "WILD DRAW", top, size });
+    }
+    return cards;
+}
+
+
+
 
