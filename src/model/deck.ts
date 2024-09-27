@@ -1,10 +1,10 @@
-import * as Card from "./card.ts";
+import {cardNumbers, colors, Card} from "./card.ts";
 
 export interface Deck {
-    cards: Card.Card[];
-    shuffle(shuffler: (cards: Card.Card[]) => void): void;
-    deal(): Card.Card | undefined;
-    top(): Card.Card | undefined;
+    cards: Card[];
+    shuffle(shuffler: (cards: Card[]) => void): void;
+    deal(): Card | undefined;
+    top(): Card | undefined;
     size(): number;
 }
 
@@ -17,7 +17,6 @@ export const createInitialDeck = (): Deck => {
     return {
         cards: state.cards,
         shuffle: (shuffler) => {
-
             shuffler(state.cards);
         },
         deal: () => {
@@ -33,17 +32,17 @@ export const createInitialDeck = (): Deck => {
 }
 
 //Create each of the cards
-const initialiseCards = (): Card.Card[] => {
+const initialiseCards = (): Card[] => {
 
-    let cards: Card.Card[] = []
+    let cards: Card[] = []
 
-    const top = (): Card.Card => cards[cards.length - 1];
+    const top = (): Card => cards[cards.length - 1];
     const size = (): number => cards.length;
 
     //Create the 4 colors
-    for (let color of Card.colors) {
+    for (let color of colors) {
         //Create numbered cards (1x 0, 2x 1 � 9)
-        for (let number of Card.cardnumbers) {
+        for (let number of cardNumbers) {
             if (number === 0) {
                 cards.push({ type: "NUMBERED", color, number, top, size });
             }
