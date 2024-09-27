@@ -1,11 +1,12 @@
-import { Randomizer, Shuffler, standardShuffler } from '../../src/utils/random_utils'
+import { Card } from "../../src/model/card"
+import { Deck } from "../../src/model/deck"
 import * as deck from '../../src/model/deck'
 import * as hand from '../../src/model/hand'
+import { Shuffler, standardShuffler } from "../../src/utils/random_utils"
 import * as uno from '../../src/model/uno'
-import {Card} from "../../src/model/card";
 
-export function createInitialDeck(): deck.Deck {
-    return deck.createInitialDeck()
+export function createInitialDeck(): Deck {
+  return deck.createInitialDeck()
 }
 
 export type HandProps = {

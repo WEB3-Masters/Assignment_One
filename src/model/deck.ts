@@ -42,7 +42,7 @@ const initialiseCards = (): Card.Card[] => {
 
     //Create the 4 colors
     for (let color of Card.colors) {
-        //Create numbered cards (1x 0, 2x 1 – 9)
+        //Create numbered cards (1x 0, 2x 1 ï¿½ 9)
         for (let number of Card.cardnumbers) {
             if (number === 0) {
                 cards.push({ type: "NUMBERED", color, number, top, size });
@@ -65,7 +65,6 @@ const initialiseCards = (): Card.Card[] => {
     }
     return cards;
 }
-
 
 
 

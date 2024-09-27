@@ -1,6 +1,7 @@
-import { Hand, createHand } from "./hand.ts";
-import { Randomizer, Shuffler, standardRandomizer, standardShuffler } from "../utils/random_utils.ts"
-import { Card } from "./card.ts";
+import { Randomizer, Shuffler, standardRandomizer, standardShuffler } from "../utils/random_utils";
+import { Card } from "./card";
+import { createHand, Hand } from "./hand";
+
 
 export interface Game {
     players: string[]
