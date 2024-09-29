@@ -3,6 +3,7 @@ export type Color = typeof colors[number];
 export type Type = Card["type"];
 
 export const cardNumbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
+export type CardNumbers = typeof cardNumbers[number];
 
 export interface NumberedCard extends CardBase{
     type: 'NUMBERED';
@@ -39,7 +40,7 @@ interface BlankCard extends CardBase{
 
 interface CardBase {
     top: () => Card;
-    size: () => number;
+    size: number;
 }
 
 export function hasColor(card: Card): card is Extract<Card, { color: Color }> {
