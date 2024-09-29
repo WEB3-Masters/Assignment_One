@@ -37,21 +37,24 @@ const createDeck = (cards: Card[]): Deck => {
         shuffle: (shuffler) => {
             shuffler(state.cards);
         },
+        //Deals the card at index[0]
         deal: () => {
             return state.cards.shift();
         },
+        //Returns the card at index[0]
         top: () => {
-            return state.cards[state.cards.length-1];
+            return state.cards[0];
         },
+        //Adds a card to the deck at index[0]
         addCard: (card) => {
-            state.cards.push(card);
+            state.cards.unshift(card);
         },
         get size() {
             return state.cards.length;
         },
         colors: cardColors,
         filter: (predicate) => {
-            const filteredDeck = state.cards.filter(predicate);
+            const filteredDeck = state.cards.filter(predicate); // Including a custom filter for the test
             return createDeck(filteredDeck); // Recursively return filtered deck
         },
     };
@@ -80,7 +83,7 @@ const initialiseCards = (): Card[] => {
         }
     }
 
-    // Create 4x WILD and 4x WILD DRAW FOUR cards
+    // Create 4x WILD and 4x WILD DRAW cards
     for (let i = 0; i < 4; i++) {
         cards.push(createCard("WILD",cards));
         cards.push(createCard("WILD DRAW",cards));
@@ -94,8 +97,8 @@ const initialiseCards = (): Card[] => {
 const createCard = (
     type: Card['type'],
     deck: Card[],
-    color?: Color,  // Restrict color to only the defined colors in card.ts
-    number?: CardNumbers
+    color?: Color,          //Colors from card.ts
+    number?: CardNumbers    //CardNumbers from card.ts
 ): Card => {
     // Handle numbered cards (requires both color and number)
     if (type === 'NUMBERED') {
@@ -106,7 +109,7 @@ const createCard = (
             type: 'NUMBERED',
             color,
             number,
-            top: () => deck[deck.length - 1],
+            top: () => deck[0],
             get size() {
                 return deck.length;
             },
@@ -121,7 +124,7 @@ const createCard = (
         return {
             type,
             color,
-            top: () => deck[deck.length - 1],
+            top: () => deck[0],
             get size() {
                 return deck.length;
             },
@@ -132,7 +135,7 @@ const createCard = (
     if (['WILD', 'WILD DRAW'].includes(type)) {
         return {
             type,
-            top: () => deck[deck.length - 1],
+            top: () => deck[0],
             get size() {
                 return deck.length;
             },
