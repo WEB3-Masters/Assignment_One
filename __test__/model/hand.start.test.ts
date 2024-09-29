@@ -60,6 +60,7 @@ describe("Hand set up", () => {
   })
   it("creates a discard pile with the top card", () => {
     const undealtCards = cards.slice(dealtCardsCount)  
+    console.log(hand.discardPile())
     expect(hand.discardPile().size).toEqual(1)
     expect(hand.discardPile().top()).toEqual(undealtCards[0])  
   })

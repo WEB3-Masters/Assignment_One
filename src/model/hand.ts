@@ -40,7 +40,13 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
     drawPile.shuffle(shuffler);
     const discardPile: Deck = createInitialDeck();
     const playerHands: Card[][] = Array.from({ length: players.length }, () => []);
+    if(players.length < 2 ) {
+        throw new Error("At least two players must join the game");
+    }
 
+    if(players.length > 10) {
+        throw new Error("Maximum allowed number of players is 10");
+    }
 
     // Deal cards to players
     for (let i = 0; i < cardsPerPlayer; i++) {
@@ -242,7 +248,12 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             return false; // Accusation failed
         },
         playerCount: state.players.length,
-        player:(index: number) => state.players[index],
+        player: (index: number) => {
+            if (index < 0 || index >= state.players.length) {
+                throw new Error("Player index out of bounds");
+            }
+            return state.players[index];
+        },
         dealer
     };
 return hand;
