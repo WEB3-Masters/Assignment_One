@@ -1,11 +1,10 @@
-import { standardShuffler} from "../utils/random_utils";
 import { cardNumbers, colors as cardColors, Card, Color, CardNumbers } from "./card";
 
 export interface Deck {
     cards: Card[];
     shuffle(shuffler: (cards: Card[]) => void): void;
-    deal(): Card | undefined;
-    top(): Card | undefined;
+    deal(): Card;
+    top(): Card;
     addCard(card: Card): void;
     readonly size: number;
     readonly colors: readonly string[];
@@ -39,11 +38,21 @@ export const createDeck = (cards: Card[]): Deck => {
         },
         //Deals the card at index[0]
         deal: () => {
-            return state.cards.shift();
+            if(state.cards.length >= 1)
+            {return state.cards.shift();}
+            else
+            {
+                throw console.error("Pile empty");
+            }
         },
         //Returns the card at index[0]
         top: () => {
-            return state.cards[0];
+            if(state.cards.length >= 1)
+            {return state.cards[0];}
+            else
+            {
+                throw console.error("Pile empty")
+            }
         },
         //Adds a card to the deck at index[0]
         addCard: (card) => {
