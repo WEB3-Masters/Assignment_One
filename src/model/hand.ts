@@ -105,8 +105,6 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
                 playerHands[state.currentPlayer].push(card);
             }
         }
-       
-         
     }
 
     const endCallbacks: ((event: { winner: string }) => void)[] = [];
@@ -219,9 +217,9 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             const playerHand = playerHands[state.currentPlayer];
             let direction=-1;
             const card = playerHand[index];
-            if (index < 0 || index >= playerHand.length) {
-                throw new Error("Invalid card index");
-              }
+            // if (index < 0 || index >= playerHand.length) {
+            //     throw new Error("Invalid card index");
+            //   }
 
             if(hand.canPlay(index)) {
                 if(hasColor(card) && chosenColor){
