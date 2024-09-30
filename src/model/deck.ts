@@ -27,7 +27,7 @@ export const createInitialDeck = (): Deck => {
 };
 
 // Common function to create a deck
-const createDeck = (cards: Card[]): Deck => {
+export const createDeck = (cards: Card[]): Deck => {
     let state = { cards };
 
     return {

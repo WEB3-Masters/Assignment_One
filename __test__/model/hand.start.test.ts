@@ -64,7 +64,7 @@ describe("Hand set up", () => {
     expect(hand.discardPile().top()).toEqual(undealtCards[0])  
   })
   it("keeps the undealt cards in the draw pile", () => {
-    const undealtCards = cards.slice(dealtCardsCount)    
+    const undealtCards = cards.slice(dealtCardsCount+1)    
     for(let i = 1; i < undealtCards.length; i++) {
       expect(hand.drawPile().deal()).toEqual(undealtCards[i])
     }

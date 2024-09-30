@@ -1,5 +1,5 @@
 import { Card, hasColor } from "./card"; // Assuming isValidPlay checks card validity based on UNO rules
-import { Deck, createInitialDeck } from "./deck";
+import { Deck, createDeck, createInitialDeck } from "./deck";
 import { Shuffler } from "../utils/random_utils";
 
 export interface Hand {
@@ -38,7 +38,10 @@ type HandState = {
 export const createHand = (players: string[], dealer: number, shuffler: Shuffler<Card>, cardsPerPlayer: number): Hand => {
     const drawPile = createInitialDeck();
     drawPile.shuffle(shuffler);
-    const discardPile: Deck = createInitialDeck();
+    // do {
+    //     drawPile.shuffle(shuffler);
+    //   } while (drawPile.top()?.type === 'WILD' || drawPile.top()?.type === 'WILD DRAW');
+
     const playerHands: Card[][] = Array.from({ length: players.length }, () => []);
     if(players.length < 2 ) {
         throw new Error("At least two players must join the game");
@@ -48,16 +51,18 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
         throw new Error("Maximum allowed number of players is 10");
     }
 
-    // Deal cards to players
-    for (let i = 0; i < cardsPerPlayer; i++) {
-        for (let j = 0; j < players.length; j++) {
+    for (let i = 0; i < players.length; i++) {
+        for (let j = 0; j < cardsPerPlayer; j++) {
             const card = drawPile.deal();
             if (card) {
-                playerHands[j].push(card);
+                playerHands[i].push(card);
             }
         }
     }
-
+    const topCard=drawPile.deal()
+    const discardPile: Deck=createDeck([]);
+    console.log('NEW Draw Pile ',drawPile.size)
+    discardPile.addCard(topCard)
     let state: HandState = {
         phase: "Game-Start",
         players,
@@ -218,7 +223,7 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             else{
                 state.currentPlayer+=direction*1
             }
-            discardPile.addCard(card);
+            discardPile.addCard(card); //??
             playerHand.splice(index, 1);
             }
             else{
