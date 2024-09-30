@@ -84,6 +84,30 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
         currentPlayer: (dealer + 1) % players.length,
         unoCalled: Array(players.length).fill(false)
     };
+   
+    if(topCard.type === 'REVERSE' ){
+        if(dealer!==0){
+        state.currentPlayer=(dealer - 1) % players.length
+        }
+        else{
+            state.currentPlayer=(players.length-1) % players.length
+        }
+    }
+    if(topCard.type === 'SKIP'){
+        state.currentPlayer=(dealer +2) % players.length
+    }
+    if(topCard.type === 'DRAW'){
+        state.currentPlayer=(dealer +1) % players.length
+        let card = drawPile.deal();
+        for (let index = 0; index < 2; index++) {
+            card = drawPile.deal();
+            if (card) {
+                playerHands[state.currentPlayer].push(card);
+            }
+        }
+       
+         
+    }
 
     const endCallbacks: ((event: { winner: string }) => void)[] = [];
 
@@ -193,7 +217,7 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
         },
         play: (index: number, chosenColor?: string) => {
             const playerHand = playerHands[state.currentPlayer];
-            let direction=1;
+            let direction=-1;
             const card = playerHand[index];
             if (index < 0 || index >= playerHand.length) {
                 throw new Error("Invalid card index");
