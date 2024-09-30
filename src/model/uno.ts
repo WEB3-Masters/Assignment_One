@@ -19,8 +19,12 @@ export interface Game {
 export const createGame = (props: Partial<Game> & { shuffler?: Shuffler<Card>, randomizer?: Randomizer }): Game => {
     const defaultPlayers = ['A', 'B']
     const players = props.players || defaultPlayers
-    const targetScore = props.targetScore || 500
+    const targetScore = props.targetScore !== undefined ? props.targetScore : 500
   
+    if (targetScore <= 0) {
+      throw new Error('The target score must be greater than 0.') 
+    }
+
     if (players.length < 2) {
       throw new Error('There must be at least 2 players.')
     }
@@ -49,7 +53,7 @@ export const createGame = (props: Partial<Game> & { shuffler?: Shuffler<Card>, r
       winner() {
         const winningScoreIndex = scores.findIndex(score => score >= targetScore)
         return winningScoreIndex >= 0 ? players[winningScoreIndex] : undefined
-      },
+      },    
   
       score(index: number) {
         if (index < 0 || index >= scores.length) {
