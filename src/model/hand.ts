@@ -59,10 +59,19 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             }
         }
     }
-    const topCard=drawPile.deal()
+    let topCard=drawPile.top()
     const discardPile: Deck=createDeck([]);
-    console.log('NEW Draw Pile ',drawPile.size)
-    discardPile.addCard(topCard)
+    
+    if (topCard.type !== 'WILD' && topCard.type !== 'WILD DRAW') {
+        discardPile.addCard(topCard);
+    } else {
+    do {
+        drawPile.shuffle(shuffler);
+        topCard = drawPile.top();
+    } while (topCard?.type === 'WILD' || topCard?.type === 'WILD DRAW');
+    }
+    drawPile.deal()
+
     let state: HandState = {
         phase: "Game-Start",
         players,
