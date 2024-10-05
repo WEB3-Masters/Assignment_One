@@ -4,8 +4,8 @@ import { cardNumbers, colors as cardColors, Card, Color, CardNumbers } from "./c
 export interface Deck {
     cards: Card[];
     shuffle(shuffler: (cards: Card[]) => void): void;
-    deal(): Card | undefined;
-    top(): Card | undefined;
+    deal(): Card;
+    top(): Card;
     addCard(card: Card): void;
     readonly size: number;
     readonly colors: readonly string[];
@@ -27,7 +27,7 @@ export const createInitialDeck = (): Deck => {
 };
 
 // Common function to create a deck
-const createDeck = (cards: Card[]): Deck => {
+export const createDeck = (cards: Card[]): Deck => {
     let state = { cards };
 
     return {
