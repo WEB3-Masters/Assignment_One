@@ -38,6 +38,8 @@ type HandState = {
 export const createHand = (players: string[], dealer: number, shuffler: Shuffler<Card>, cardsPerPlayer: number): Hand => {
     const drawPile = createInitialDeck();
     drawPile.shuffle(shuffler);
+    console.log('Dealer',dealer);
+
     // do {
     //     drawPile.shuffle(shuffler);
     //   } while (drawPile.top()?.type === 'WILD' || drawPile.top()?.type === 'WILD DRAW');
@@ -63,9 +65,11 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
     const discardPile: Deck=createDeck([]);
     
     if (topCard.type !== 'WILD' && topCard.type !== 'WILD DRAW') {
+        console.log('TOP NO WILD ');
         discardPile.addCard(topCard);
     } else {
     do {
+        console.log('TOP WILD ');
         drawPile.shuffle(shuffler);
         topCard = drawPile.top();
     } while (topCard?.type === 'WILD' || topCard?.type === 'WILD DRAW');
@@ -85,6 +89,7 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
         unoCalled: Array(players.length).fill(false)
     };
     if(topCard.type === 'REVERSE' ){
+        console.log('CREATE REVERSE')
         if(dealer!==0){
         state.currentPlayer=(dealer - 1) % players.length
         }
@@ -93,10 +98,11 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
         }
     }
     if(topCard.type === 'SKIP'){
+        console.log('CREATE SKIP')
         state.currentPlayer=(dealer +2) % players.length
     }
     if(topCard.type === 'DRAW'){
-        console.log('HELP')
+        console.log('CREATE DRAW')
         let card = drawPile.deal();
         for (let index = 0; index < 2; index++) {
             card = drawPile.deal();
@@ -104,8 +110,8 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
                 playerHands[state.currentPlayer].push(card);
             }
         }
-        state.currentPlayer=(dealer +1) % players.length
-
+        state.currentPlayer=(dealer +2) % players.length
+        
     }
 
     const endCallbacks: ((event: { winner: string }) => void)[] = [];
@@ -124,13 +130,15 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
 
     const hand: Hand= {
         canPlay: (index: number) => {
+            // state.currentPlayer=1 //heureka
+
             const playerHand = playerHands[state.currentPlayer];
             const playerCard=playerHand[index];
             const topCard=discardPile.top();
-            console.log('Hello')
-            
-            console.log(playerHands[index])
-            
+            console.log('Current Player',state.currentPlayer);
+            // console.log(state.cards[1]);
+            console.log(state.currentPlayer);
+            console.log('Card',topCard);
             if(index<0 || index>playerHand.length-1){
                 return false;
             }
@@ -156,24 +164,21 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
 
             // Play on SKIP Card
 
-                                if(topCard.type==='SKIP'){
+            if(topCard.type==='SKIP'){
                 if( hasColor(playerCard) && playerCard.color === (hasColor(topCard) &&topCard.color)) return true
                 if(playerCard.type==='SKIP') return true
             }
 
             // Play on DRAW Card
             if(topCard.type==='DRAW'){
-                // console.log('DRAW')
+                console.log('DRAW')
                 // console.log(topCard)
                 // console.log(playerCard)
 
-                if( (hasColor(playerCard) && playerCard.color === (hasColor(topCard) &&topCard.color)) || playerCard.type==='DRAW') {
-                    console.log('HELLO')
+                if((hasColor(playerCard) && playerCard.color === (hasColor(topCard) &&topCard.color)) || playerCard.type==='DRAW') {
                     return true
                 }
-               
-
-               
+                 
             }
 
             // Play on WILD Card
