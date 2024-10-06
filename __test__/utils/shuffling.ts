@@ -79,7 +79,6 @@ export function shuffleBuilder(
   const topOfDiscardPile = players * cardsInHand
   let currentIndex = 0
   let repetition = 1
-  console.log('Cards in hand',cardsInHand);
 
   function constrain(preds: CardPredicate[]): ShuffleBuilder {
     for(let i = 0; i < repetition; i++) {

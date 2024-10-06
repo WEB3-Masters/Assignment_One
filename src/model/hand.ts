@@ -38,7 +38,6 @@ type HandState = {
 export const createHand = (players: string[], dealer: number, shuffler: Shuffler<Card>, cardsPerPlayer: number): Hand => {
     const drawPile = createInitialDeck();
     drawPile.shuffle(shuffler);
-    console.log('Dealer',dealer);
 
     // do {
     //     drawPile.shuffle(shuffler);
@@ -135,10 +134,6 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             const playerHand = playerHands[state.currentPlayer];
             const playerCard=playerHand[index];
             const topCard=discardPile.top();
-            console.log('Current Player',state.currentPlayer);
-            // console.log(state.cards[1]);
-            console.log(state.currentPlayer);
-            console.log('Card',topCard);
             if(index<0 || index>playerHand.length-1){
                 return false;
             }
@@ -172,13 +167,10 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             // Play on DRAW Card
             if(topCard.type==='DRAW'){
                 console.log('DRAW')
-                // console.log(topCard)
-                // console.log(playerCard)
 
                 if((hasColor(playerCard) && playerCard.color === (hasColor(topCard) &&topCard.color)) || playerCard.type==='DRAW') {
                     return true
                 }
-                 
             }
 
             // Play on WILD Card
@@ -187,6 +179,7 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
                 let lastCard=discardPile.top();
             if(hasColor(playerCard) && playerCard.color === (lastCard && hasColor(lastCard) && lastCard.color)) return true
             if(playerCard.type==='WILD DRAW'){
+
                 for (let index = 0; index < playerHand.length; index++) {
                     const cardInArray = playerHand[index];
                     if(hasColor(cardInArray) && cardInArray.color===(lastCard && hasColor(lastCard) && lastCard.color)){
@@ -200,25 +193,44 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             
         // Play with WILD DRAW Card
         if (playerCard.type === 'WILD DRAW') {
+            console.log('Play with WILD DRAW Card');
+            console.log('Player hand', playerHand);
             for (let index = 0; index < playerHand.length; index++) {
-                if(
-                playerHand[index].type==='DRAW' || 
-                playerHand[index].type==='SKIP' || 
-                playerHand[index].type==='REVERSE' || 
-                playerHand[index].type==='WILD' &&
-                hand.canPlay(index)
-                ) {
-                    return false;
-                }
-
                 const card = playerHand[index];
-                if( hasColor(card) && card.color === (hasColor(topCard) &&topCard.color)) return false
-            
-                if (card.type === 'NUMBERED' && topCard.type==='NUMBERED' && (card.number===topCard.number)) {
-                    return true;
+                
+              
+                if(
+                playerHand[index].type!=='WILD DRAW' &&
+                playerHand[index].type!=='DRAW' && 
+                playerHand[index].type!=='SKIP' && 
+                playerHand[index].type!=='REVERSE' &&
+                playerHand[index].type!=='WILD' &&
+                (card.type === 'NUMBERED' && topCard.type==='NUMBERED' && 
+                (card.number!==topCard.number))         
+                 ){
+                    if(hand.canPlay(index)){
+                        {
+                            console.log('CAN PLAY',playerHand[index]);
+                            return false;
+                        }
+                    }
                 }
+                     
+                // if (card.type === 'NUMBERED' && topCard.type==='NUMBERED' && (card.number===topCard.number)) {
+                //     return true;
+                // }    
+ 
+                // if((playerHand[index].type!=='DRAW' && 
+                //     playerHand[index].type!=='SKIP' && 
+                //     playerHand[index].type!=='REVERSE') && 
+                //     hasColor(card) && card.color === (hasColor(topCard) &&topCard.color)) {
+                //         console.log('HELLO HERE');
+                //         return false
+                //     }
+            
                 
                 }
+                return true
             }
           
             return false
