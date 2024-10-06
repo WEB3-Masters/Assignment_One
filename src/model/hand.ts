@@ -175,6 +175,8 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
 
             // Play on WILD Card
             if(topCard.type==='WILD'){
+                console.log('WILD')
+
                 let discardPile = hand.discardPile();
                 let lastCard=discardPile.top();
             if(hasColor(playerCard) && playerCard.color === (lastCard && hasColor(lastCard) && lastCard.color)) return true
@@ -185,7 +187,6 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
                     if(hasColor(cardInArray) && cardInArray.color===(lastCard && hasColor(lastCard) && lastCard.color)){
                         return false;
                     }
-                    
                 }
                 return true;
             }
@@ -194,11 +195,9 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
         // Play with WILD DRAW Card
         if (playerCard.type === 'WILD DRAW') {
             console.log('Play with WILD DRAW Card');
-            console.log('Player hand', playerHand);
             for (let index = 0; index < playerHand.length; index++) {
                 const card = playerHand[index];
-                
-              
+
                 if(
                 playerHand[index].type!=='WILD DRAW' &&
                 playerHand[index].type!=='DRAW' && 
@@ -210,25 +209,14 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
                  ){
                     if(hand.canPlay(index)){
                         {
-                            console.log('CAN PLAY',playerHand[index]);
                             return false;
                         }
                     }
                 }
                      
-                // if (card.type === 'NUMBERED' && topCard.type==='NUMBERED' && (card.number===topCard.number)) {
-                //     return true;
-                // }    
- 
-                // if((playerHand[index].type!=='DRAW' && 
-                //     playerHand[index].type!=='SKIP' && 
-                //     playerHand[index].type!=='REVERSE') && 
-                //     hasColor(card) && card.color === (hasColor(topCard) &&topCard.color)) {
-                //         console.log('HELLO HERE');
-                //         return false
-                //     }
-            
-                
+               if(hasColor(card)&&card.color===(hasColor(topCard)&&topCard.color)){
+                return false;
+               }
                 }
                 return true
             }
