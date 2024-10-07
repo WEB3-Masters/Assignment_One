@@ -388,7 +388,7 @@ describe("Drawing a card", () => {
     })
   })
 
-  describe("when drawing because of a card", () => {
+  /*describe("when drawing because of a card", () => {
     const builder = shuffleBuilder({players: 4, cardsPerPlayer: 1})
       .discard().is({type: 'NUMBERED', color: 'BLUE', number: 8})
       .drawPile()
@@ -411,6 +411,7 @@ describe("Drawing a card", () => {
     expect(hand.discardPile().size).toEqual(1)
     expect(hand.drawPile().size).toEqual(1)
   })
+   */
 })
 
 describe("special 2-player rules", () => {

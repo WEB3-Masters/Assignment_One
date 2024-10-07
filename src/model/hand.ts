@@ -1,4 +1,4 @@
-import { Card, Color, hasColor } from "./card"; // Assuming isValidPlay checks card validity based on UNO rules
+import {Card, Color, colors, hasColor} from "./card"; // Assuming isValidPlay checks card validity based on UNO rules
 import { Deck, createDeck, createInitialDeck } from "./deck";
 import { Shuffler } from "../utils/random_utils";
 
@@ -34,17 +34,35 @@ type HandState = {
     currentPlayer: number;
     newColor: string | undefined;
     unoCalled: boolean[];
+    direction: number;
 };
 
 export const createHand = (players: string[], dealer: number, shuffler: Shuffler<Card>, cardsPerPlayer: number): Hand => {
     const drawPile = createInitialDeck();
+    const discardPile: Deck=createDeck([]);
+
+    const playerHands: Card[][] = Array.from({ length: players.length }, () => []);
     drawPile.shuffle(shuffler);
+
+    let state: HandState = {
+        phase: "Game-Start",
+        players,
+        dealer,
+        shuffler,
+        cards: playerHands,
+        currentCard: drawPile.deal()!, // The first card to play from the draw pile
+        drawPile,
+        discardPile,
+        currentPlayer: (dealer + 1) % players.length,
+        newColor:undefined,
+        unoCalled: Array(players.length).fill(false),
+        direction: 1
+    };
 
     // do {
     //     drawPile.shuffle(shuffler);
     //   } while (drawPile.top()?.type === 'WILD' || drawPile.top()?.type === 'WILD DRAW');
 
-    const playerHands: Card[][] = Array.from({ length: players.length }, () => []);
     if(players.length < 2 ) {
         throw new Error("At least two players must join the game");
     }
@@ -61,36 +79,21 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             }
         }
     }
-    let topCard=drawPile.top()
-    const discardPile: Deck=createDeck([]);
-    
+    let topCard= drawPile.top()
+
     if (topCard.type !== 'WILD' && topCard.type !== 'WILD DRAW') {
-        console.log('TOP NO WILD ');
         discardPile.addCard(topCard);
     } else {
-    do {
-        console.log('TOP WILD ');
-        drawPile.shuffle(shuffler);
-        topCard = drawPile.top();
-    } while (topCard?.type === 'WILD' || topCard?.type === 'WILD DRAW');
+        //TODO: Fix this
+        do {
+            console.log('TOP WILD ');
+            drawPile.shuffle(shuffler);
+            topCard = drawPile.top();
+        } while (topCard?.type === 'WILD' || topCard?.type === 'WILD DRAW');
     }
     drawPile.deal()
 
-    let state: HandState = {
-        phase: "Game-Start",
-        players,
-        dealer,
-        shuffler,
-        cards: playerHands,
-        currentCard: drawPile.deal()!, // The first card to play from the draw pile
-        drawPile,
-        discardPile,
-        currentPlayer: (dealer + 1) % players.length,
-        newColor:undefined,
-        unoCalled: Array(players.length).fill(false)
-    };
-    if(topCard.type === 'REVERSE' ){
-        console.log('CREATE REVERSE')
+    if(topCard.type === 'REVERSE'){
         if(dealer!==0){
         state.currentPlayer=(dealer - 1) % players.length
         }
@@ -127,6 +130,14 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             }
         }
         return undefined;
+    };
+
+    const reshuffle = () => {
+        const topCard = discardPile.deal();
+        const discardedCards = discardPile.cards.splice(0);
+        drawPile.cards = discardedCards;
+        drawPile.shuffle(state.shuffler);
+        discardPile.addCard(topCard);
     };
 
     const hand: Hand= {
@@ -185,7 +196,10 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             if(topCard.type==='WILD'){
                 let discardPile = hand.discardPile();
                 let lastCard=discardPile.top();
-            if(hasColor(playerCard) && playerCard.color === (state.newColor)) return true
+
+            if(hasColor(playerCard) && playerCard.color === (state.newColor))
+                return true;
+
             if(playerCard.type==='WILD DRAW'){
 
                 for (let index = 0; index < playerHand.length; index++) {
@@ -234,65 +248,108 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
             return playerHand.some((_, index) => hand.canPlay(index));
           },          
         draw: () => {
+            if (drawPile.size === 0) {
+                reshuffle();
+            }
+
             const card = drawPile.deal();
             if (card) {
                 playerHands[state.currentPlayer].push(card);
+                const cardIndex = playerHands[state.currentPlayer].length - 1;
+                if (!hand.canPlay(cardIndex)) {
+                    // Move to next player
+                    state.currentPlayer = (state.currentPlayer + state.direction + players.length) % players.length;
+                }
+                //TODO: Else, player can choose to play or pass
             }
-            checkWinner();
-            // Pass the turn to the next player
-            state.currentPlayer = (state.currentPlayer + 1) % players.length;
         },
         play: (index: number, chosenColor?: string) => {
             const playerHand = playerHands[state.currentPlayer];
-            let direction=1;
-            const card = playerHand[index];
-            // if (index < 0 || index >= playerHand.length) {
-            //     throw new Error("Invalid card index");
-            //   }
+            if (index < 0 || index >= playerHand.length) {
+                throw new Error("Invalid card index");
+            }
+            if (!hand.canPlay(index)) {
+                throw new Error("Cannot play this card");
+            }
 
-            if(hand.canPlay(index)) {
-                console.log('CAN PLAY');
-                if(hasColor(card) && chosenColor){
-                    throw new Error("Illegal to name a color on a colored card");
-                }
-                if((card.type==='WILD' || card.type==='WILD DRAW') && !chosenColor){
-                    throw new Error("Illegal _not_ to name a color on a wild card");
-                }
-    
-                if(card.type==='SKIP'){
-                    state.currentPlayer+=direction*2
-                }
-                if(card.type==='REVERSE'){
-                    direction*=-1;
-                    state.currentPlayer+=direction*1
+            const card = playerHand[index];
+
+            if(hasColor(card) && chosenColor){
+                throw new Error("Illegal to name a color on a colored card");
+            }
+            if((card.type==='WILD' || card.type==='WILD DRAW') && !chosenColor){
+                throw new Error("Illegal _not_ to name a color on a wild card");
+            }
+
+            const updatePlayerBy = (numberOfTurns: number) => {
+                state.currentPlayer = (state.currentPlayer + numberOfTurns * state.direction + players.length) % players.length;
+            }
+
+            switch (card.type) {
+                case "SKIP":
+                    updatePlayerBy(2);
+                    break;
+                case "REVERSE":
+                    state.direction *= -1;
+                    if (players.length === 2) {
+                        // In a 2-player game, reverse acts as a skip
+                        updatePlayerBy(2);
+                    } else {
+                        updatePlayerBy(1)
                     }
-                if(card.type==='DRAW'){
-                    state.currentPlayer+=direction*2
-                    for (let index = 0; index < 2; index++) {
-                        hand.draw();
+                    break;
+                case "DRAW":
+                    const drawNextPlayer = (state.currentPlayer + state.direction + players.length) % players.length;
+
+                    // Give next player 2 cards
+                    for (let i = 0; i < 2; i++) {
+                        const drawnCard = drawPile.deal();
+                        if (drawnCard) {
+                            playerHands[drawNextPlayer].push(drawnCard);
+                        } else {
+                            reshuffle();
+                            playerHands[drawNextPlayer].push(drawPile.deal());
+                        }
                     }
-                }
-                if(card.type==='WILD DRAW'){
-                    state.currentPlayer+=direction*2
-                    for (let index = 0; index < 4; index++) {
-                        hand.draw();
+
+                    // Skip next player's turn
+                    updatePlayerBy(2);
+                    break;
+                case "WILD DRAW":
+                    if (!chosenColor || !colors.includes(chosenColor as Color)) {
+                        throw new Error("You must declare a valid color when playing a wild draw card");
                     }
-                 }
-                if(card.type==='WILD'){
-                    console.log('Play with wild');
-                    state.newColor=chosenColor;
-                    state.currentPlayer+=direction*1
-                }
-                else{
-                    state.currentPlayer+=direction*1
-                }
-                discardPile.addCard(card); //??
-                playerHand.splice(index, 1);
-                }
-                else{
-                    hand.draw();
-                }
-                return card;
+
+                    state.newColor = chosenColor;
+                    const wildDrawNextPlayer = (state.currentPlayer + state.direction + players.length) % players.length;
+
+                    // Give next player 4 cards
+                    for (let i = 0; i < 4; i++) {
+                        const drawnCard = drawPile.deal();
+                        if (drawnCard) {
+                            playerHands[wildDrawNextPlayer].push(drawnCard);
+                        } else {
+                            reshuffle();
+                            playerHands[wildDrawNextPlayer].push(drawPile.deal());
+                        }
+                    }
+
+                    // Skip next player's turn
+                    updatePlayerBy(2)
+                    break;
+                case "WILD":
+                    state.newColor = chosenColor;
+                    updatePlayerBy(1)
+                    break;
+                default:
+                    updatePlayerBy(1)
+                    break;
+            }
+
+            discardPile.addCard(card); //??
+            playerHand.splice(index, 1);
+
+            return card;
         },
         winner: () => checkWinner(),
         score: () => {
@@ -333,6 +390,6 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
         },
         dealer
     };
-return hand;
 
+    return hand;
 };
