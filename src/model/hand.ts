@@ -135,7 +135,6 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
 
             const playerHand = playerHands[state.currentPlayer];
             const topCard=discardPile.top();
-            console.log('Player Hand', state.currentPlayer);
 
             if(index<0 || index>playerHand.length-1){
                 return false;

@@ -39,7 +39,11 @@ export const createDeck = (cards: Card[]): Deck => {
         },
         //Deals the card at index[0]
         deal: () => {
-            return state.cards.shift();
+            const card = state.cards.shift();
+            if(!card) {
+                throw new Error('No more cards in the deck');
+            }
+            return card;
         },
         //Returns the card at index[0]
         top: () => {
