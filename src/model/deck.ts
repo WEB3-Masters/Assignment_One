@@ -34,9 +34,6 @@ export const createDeck = (cards: Card[]): Deck => {
         get cards() {
             return state.cards;
         },
-        set cards(cards: Card[]) {
-            state.cards = cards;
-        },
         shuffle: (shuffler) => {
             shuffler(state.cards);
         },
