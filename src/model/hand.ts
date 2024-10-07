@@ -145,33 +145,40 @@ export const createHand = (players: string[], dealer: number, shuffler: Shuffler
     const hand: Hand = {
         canPlay: (index: number) => {
             const playerHand = playerHands[state.currentPlayer];
-            const topCard= discardPile.top();
 
             if(index < 0 || index > playerHand.length - 1){
                 return false;
             }
+
+            const topCard= discardPile.top();
             const playerCard= playerHand[index];
 
             // Play with WILD Card
-            if (playerCard.type === 'WILD'  ) {
-                console.log('WILD');
+            if (playerCard.type === 'WILD') {
                 return true
             }
 
             // Play on NUMBERED Card
-            if(topCard?.type === 'NUMBERED'){
-              if(hasColor(playerCard) && playerCard.color === (hasColor(topCard) &&topCard.color))
-                  return true
+            if(topCard.type === 'NUMBERED'){
+                //Check colors
+                if(hasColor(playerCard) && playerCard.color === (hasColor(topCard) && topCard.color)) {
+                    return true;
+                }
 
-              if(playerCard.type === 'NUMBERED' && topCard.type==='NUMBERED' && (playerCard.number===topCard.number))
-                  return true
+                //Check numbers
+                if(playerCard.number===topCard.number) {
+                    return true;
+                }
             }
 
             // Play on REVERSE Card
-            if (topCard?.type === 'REVERSE'  ) {
-                let a= discardPile.top()
-                if(hasColor(playerCard) && playerCard.color === (hasColor(topCard) && topCard.color)) return true
-                if(playerCard.type==='REVERSE') return true;
+            if (topCard?.type === 'REVERSE') {
+                if(hasColor(playerCard) && playerCard.color === (hasColor(topCard) && topCard.color)) {
+                    return true;
+                }
+                if(playerCard.type==='REVERSE') {
+                    return true;
+                }
             }
 
             // Play on SKIP Card
